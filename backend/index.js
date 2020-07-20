@@ -5,6 +5,7 @@ const routes = require("./routes")
 const bodyParser = require('body-parser');
 const cookieParser = require("cookie-parser");
 const compression = require("compression");
+const http = require('http')
 require("dotenv").config();
 
 const PORT = process.env.PORT || 3000;
@@ -25,7 +26,9 @@ app.use("/", (req, res, next)=> {
 
 app.use('/', routes);
 
-app.listen(PORT, ()=>{
-  console.log("listening on port ", PORT)
+
+app.listen(PORT, ()=> {
+  console.log("listening on port: ", PORT);
 })
+
 

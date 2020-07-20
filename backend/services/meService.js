@@ -1,6 +1,6 @@
 const request = require("request");
 const requestPromise = require("request-promise-native");
-const {profile, library, artists, trackFeatures } = require('../fetch');
+const {profile, library, artists, trackFeatures } = require('../fetchtest');
 const { timeout } = require("../util");
 const filter = require("../filter");
 require("dotenv").config();
@@ -43,16 +43,12 @@ module.exports = async (code) => {
   let country = rawProfile.country;
 
   let rawLib = await library(access_token, country, 0);
-  await timeout(5000);
-
   let next = rawLib[rawLib.length - 1].next
   data.next = next;
 
   let rawArtists = await artists(access_token, rawLib);
-  await timeout(5000);
-
+  
   let rawFeatures = await trackFeatures(access_token, rawLib) 
-  await timeout(5000);
 
   let filteredData = filter(rawLib, rawArtists, rawFeatures);
 
