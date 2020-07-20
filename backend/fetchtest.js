@@ -4,6 +4,8 @@ const queryString = require("query-string");
 const fsPromise = require("fs").promises;
 const { timeout } = require("./util");
 const { write } = require("fs");
+const { time } = require("console");
+const { retry } = require('./retry');
 
 
 module.exports = {
@@ -14,7 +16,8 @@ module.exports = {
     return response;
   },
   async library(access_token, country, next) {
-
+    const RETRIES = 5;
+    let hrstart = process.hrtime();
     let url = "https://api.spotify.com/v1/me/tracks?" + queryString.stringify({
       "limit": 50,
       "offset": next,
@@ -22,34 +25,14 @@ module.exports = {
     });
   
     // Try this first request, if it fails, use retry after header to retry up to 5 times, then send error to client
-    let response;
-    try {
-      response = await requestPromise.get(url, { headers: {'Authorization': `Bearer ${access_token}` }});
-    } catch(e) {
-  
-      let tries = 1;
-      while(e && tries < 3) {
-        // If there is a rate limit err, use retry after header 
-        if (e.statusCode === 429) {
-          let retryms = Number(e.response.headers["retry-after"]) * 1000;
-          await timeout(retryms + 500);
-          response = await requestPromise.get(url, { headers: {'Authorization': `Bearer ${access_token}` }});
-          if (response.name !== "StatusCodeError") e = false;
-          else tries++;
-        }
-        // If there is any other error, throw it, controller will log it and send 500 error to user
-        else {
-          throw e;
-        }
-      }
-    }
+    let response = await retry(RETRIES, access_token, url);
     let data = [response];
     response = JSON.parse(response);
 
     const TOTAL = response.total;
     // Make 50 requests each request asking for 50 songs, for a total of 2500 songs, if they exist
-    let requestsArray = [];
-    for (let offset = next+50; requestsArray.length < 50; offset += 50) {
+    let count = 0;
+    for (let offset = next+50; count < 50; offset += 50) {
       url = "https://api.spotify.com/v1/me/tracks?" + queryString.stringify({
         "limit": 50,
         "offset": offset,
@@ -58,18 +41,16 @@ module.exports = {
       // If the offset >= total, break the loop
       if (offset >= TOTAL) break;
 
-
-      requestsArray.push(requestPromise.get(url, {headers: {'Authorization': `Bearer ${access_token}`} }))
-      
+      let res = await retry(RETRIES, access_token, url)
+      data.push(res);
+      count++;
     }
-    let responseArray = await Promise.all(requestsArray);
-    console.log("requestArray.length for library", requestsArray.length);
-    data.push(...responseArray);
-    // await timeout(5000);
 
     for (let i = 0; i < data.length; i++) {
       data[i] = JSON.parse(data[i]);
     }
+    let end = process.hrtime(hrstart);
+    console.log(`Library-Execution time(hr): ${end[0]}s ${end[1] / 1000000}ms`);
     return data;
   },
 
@@ -87,23 +68,15 @@ module.exports = {
       }
     }
     let url = "https://api.spotify.com/v1/artists?ids=";
+    let reqArr = [];
     let idArr = [];
-    let requestsArray = [];
     let data = [];
+    let count = 0;
     for (let id of artistSet) {
-      // if (requestsArray.length === 50) {
-      //   let responseArray = await Promise.all(requestsArray);
-      //   console.log("requestArray.length", requestsArray.length);
-      //   data.push(...responseArray);
-      //   requestsArray = [];
-      //   // await timeout(5000);
-      // }
-  
       if (idArr.length === 50) {
         let str = idArr.join(",");
         url += str;
-        // console.log(url);
-        requestsArray.push(requestPromise.get(url, {headers: {'Authorization': `Bearer ${access_token}`}}))
+        reqArr.push(url);
         idArr = [];
         url = "https://api.spotify.com/v1/artists?ids=";
       }
@@ -112,15 +85,14 @@ module.exports = {
     if (idArr.length) {
       let str = idArr.join(",");
       url += str;
-      requestsArray.push(requestPromise.get(url, {headers: {'Authorization': `Bearer ${access_token}`}}))
+      reqArr.push(url);
       idArr = [];
       url = "https://api.spotify.com/v1/artists?ids=";
     }
-    let responseArray = await Promise.all(requestsArray);
-    console.log("requestsArray.length for artists: ", requestsArray.length);
-    data.push(...responseArray);
-    // await timeout(5000);
-  
+    for (let req of reqArr) {
+      let res = await retry(5, access_token, req);
+      data.push(res);   
+    }
   
     for (let i = 0; i < data.length; i++) {
       data[i] = JSON.parse(data[i]);
@@ -136,23 +108,15 @@ module.exports = {
       }
     }
     let url = "https://api.spotify.com/v1/audio-features?ids=";
+    let reqArr = [];
     let idArr = [];
-    let requestsArray = [];
     let data = [];
+    let count = 0;
     for (let id of trackSet) {
-      if (requestsArray.length === 50) {
-        let responseArray = await Promise.all(requestsArray);
-        console.log("requestsArray.length", requestsArray.length);
-        data.push(...responseArray);
-        requestsArray = [];
-        // await timeout(5000);
-      }
-  
       if (idArr.length === 100) {
         let str = idArr.join(",");
         url += str;
-        // console.log(url);
-        requestsArray.push(requestPromise.get(url, {headers: {'Authorization': `Bearer ${access_token}`}}))
+        reqArr.push(url);
         idArr = [];
         url = "https://api.spotify.com/v1/audio-features?ids=";
       }
@@ -161,17 +125,15 @@ module.exports = {
     if (idArr.length) {
       let str = idArr.join(",");
       url += str;
-      requestsArray.push(requestPromise.get(url, {headers: {'Authorization': `Bearer ${access_token}`}}))
+      reqArr.push(url);
       idArr = [];
       url = "https://api.spotify.com/v1/audio-features?ids=";
     }
-    if (requestsArray.length) {
-      let responseArray = await Promise.all(requestsArray);
-      console.log("requestsArray.length for features: ", requestsArray.length);
-      data.push(...responseArray);
-      // await timeout(5000);
+    for (let req of reqArr) {
+      let res = await retry(5, access_token, req);
+      data.push(res);
     }
-  
+
     for (let i = 0; i< data.length; i++) {
       data[i] = JSON.parse(data[i]);
     }

@@ -2,21 +2,15 @@ const express = require("express");
 const router = express.Router();
 const { me, next, savePlaylist } = require("../controllers/index");
 const tokenChecker = require("../util/tokenChecker")
+// const {library, artists, trackFeatures } = require('../fetchtest');
+// const fetch = require("../fetch");
+// const { timeout } = require("../util");
+// const fsPromise = require('fs').promises;
 
 
 router.get('/me', me);
 router.post('/next', tokenChecker, next)
 router.post('/save', tokenChecker, savePlaylist);
-router.get('/test', (req, res, next)=> {
-  console.log(req.cookies);
-  console.log(req.signedCookies);
-
-  let expires = 1000*60*60*24;
-
-  let data = JSON.stringify({test: "yes", goodbye: "no"});
-  res.cookie("test", data, {signed: true, maxAge: expires })
-  return res.sendStatus(200);
-})
 
 /* 
   !Sequence Diagram 
@@ -43,6 +37,5 @@ router.get('/test', (req, res, next)=> {
   1. Token checker, it takes an access token and refresh token, if access token is valid, will continue, else, the refresh token is used to ask for another token, new access token and refresh token are given new timestamp and added to response body, otherwise tokens in body is null
 
 */
-
 
 module.exports = router;
