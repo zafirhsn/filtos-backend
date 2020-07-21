@@ -44,7 +44,10 @@ module.exports = async (req, res, next) => {
       let expires = 1000*60*60*24
       res.cookie("_session", JSON.stringify(data), {
         signed: true,
-        maxAge: expires
+        maxAge: expires,
+        sameSite: `${process.env.SAME_SITE}`,
+        secure: Boolean(process.env.SECURE),
+        domain: `${process.env.DOMAIN}`
       })
 
       req.body.profile = profile;
