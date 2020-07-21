@@ -18,7 +18,7 @@ module.exports = async (req, res, next) => {
 
     let timestamp = new Date().getTime() / 1000;
 
-    if (timestamp - created >= 86400) {
+    if (timestamp - created >= 3500) {
       let response = await requestPromise.post("https://accounts.spotify.com/api/token", {
         headers: {
           "Authorization": `Basic ${process.env.BASE64AUTH}`
