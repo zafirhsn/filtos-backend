@@ -7,7 +7,9 @@ const tokenChecker = require("../util/tokenChecker")
 // const { timeout } = require("../util");
 // const fsPromise = require('fs').promises;
 
-
+router.get('/testServer', async (req, res, next) => {
+  return res.status(200).send("Server is working...");
+});
 router.get('/me', me);
 router.post('/next', tokenChecker, next)
 router.post('/save', tokenChecker, savePlaylist);
