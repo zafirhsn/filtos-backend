@@ -156,4 +156,4 @@ async function main() {
   await fsPromise.writeFile('./data/trackfeatures-raw.json', JSON.stringify(t));
 }
 
-main().then().catch();
+// main().then().catch();
