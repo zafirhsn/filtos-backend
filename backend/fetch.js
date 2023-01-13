@@ -2,7 +2,7 @@ const request = require("request");
 const requestPromise = require("request-promise-native");
 const queryString = require("query-string");
 const fsPromise = require("fs").promises;
-const { timeout } = require("./util");
+const { timeout } = require("./utils");
 const { write } = require("fs");
 
 

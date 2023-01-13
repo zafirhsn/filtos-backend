@@ -6,12 +6,16 @@ module.exports = (lib, artists, features) => {
 
     for (let req of artists) {
       for (let artist of req.artists) {
+        if (artist === null) continue;
+        if (artist.id === null) continue;
         artistTable[artist.id] = artist.genres;
       }
     }
 
     for (let req of features) {
       for (let track of req.audio_features) {
+        if (track === null) continue;
+        if (track.id === null) continue;
         featureTable[track.id] = {
           danceability: track.danceability,
           energy: track.energy,

@@ -2,7 +2,7 @@ const request = require("request");
 const requestPromise = require("request-promise-native");
 const queryString = require("query-string");
 const fsPromise = require("fs").promises;
-const { timeout } = require("./util");
+const { timeout } = require("./utils");
 const { write } = require("fs");
 const { time } = require("console");
 const { retry } = require('./retry');
@@ -145,6 +145,8 @@ module.exports = {
 } 
 
 async function main() {
+  let access_token = "BQDq5vA4bnF3XpltM5JJrCxY6xT110Cunh1Pihv-i_AQlFY_zaAie8MHIgDKal6dYpDAA4Wse27PNKMiNLC-bViBaT_IgUPhPqkLz74P3dpWpIGyt0MStHQEtN5UpqR3Ux0yYCd-IDUhRJj_9ORuF1aAIhAxs3UbmKsh-EzZdbetTWPQ5cOM6B2x7gSAp73o-wQqzARtw1jiFfu5TK0FezwOlrMg_md_qfQC37eheNMwc1iHRaUCCL70foRNRXgWZYy6enrw";
+
   let lib = await module.exports.library(access_token, "US", 0);
   let a = await module.exports.artists(access_token, lib);
   let t = await module.exports.trackFeatures(access_token, lib);
@@ -154,4 +156,4 @@ async function main() {
   await fsPromise.writeFile('./data/trackfeatures-raw.json', JSON.stringify(t));
 }
 
-// main().then().catch();
+main().then().catch();

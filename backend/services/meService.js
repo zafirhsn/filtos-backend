@@ -1,7 +1,7 @@
 const request = require("request");
 const requestPromise = require("request-promise-native");
 const {profile, library, artists, trackFeatures } = require('../fetchtest');
-const { timeout } = require("../util");
+const { timeout } = require("../utils");
 const filter = require("../filter");
 require("dotenv").config();
 

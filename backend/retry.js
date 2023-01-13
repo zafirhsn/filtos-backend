@@ -1,6 +1,6 @@
 const request = require("request");
 const requestPromise = require("request-promise-native");
-const {timeout} = require('./util/index');
+const {timeout} = require('./utils/index');
 
 module.exports = {
   async retry (num, access_token, url) {

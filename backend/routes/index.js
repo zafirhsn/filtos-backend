@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { me, next, savePlaylist } = require("../controllers/index");
-const tokenChecker = require("../util/tokenChecker")
+const tokenChecker = require("../utils/tokenChecker")
 // const {library, artists, trackFeatures } = require('../fetchtest');
 // const fetch = require("../fetch");
 // const { timeout } = require("../util");

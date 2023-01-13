@@ -1,6 +1,6 @@
 const {library, artists, trackFeatures} = require("../fetchtest");
 const queryString = require("query-string");
-const {timeout} = require('../util/index');
+const {timeout} = require('../utils/index');
 const filter = require("../filter");
 require("dotenv").config();
 
